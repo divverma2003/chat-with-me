@@ -15,6 +15,7 @@ import ProfilePage from "./pages/ProfilePage";
 
 // External components
 import { Loader } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -54,6 +55,7 @@ function App() {
           element={authUser ? <ProfilePage /> : <Navigate to="/login" />}
         />
       </Routes>
+      <Toaster />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   Eye,
   Loader,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 import AuthImagePattern from "../components/AuthImagePattern";
 
@@ -23,7 +24,27 @@ const RegisterPage = () => {
   });
 
   const { register, isRegistering } = useAuthStore();
-  const validateForm = () => {};
+  const validateForm = () => {
+    if (!formData.fullName.trim()) {
+      toast.error("Full name is a required field.");
+      return false;
+    }
+    if (!formData.email.trim()) {
+      toast.error("Email is a required field.");
+      return false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(formData.email)) {
+      toast.error("Email format is not valid.");
+      return false;
+    }
+    if (!formData.password.trim()) {
+      toast.error("Password is a required field.");
+      return false;
+    } else if (formData.password.length < 6) {
+      toast.error("Your password must be at least 6 characters long.");
+      return false;
+    }
+    return true;
+  };
   const handleSubmit = (event) => {
     event.preventDefault(); // prevent default form submission
     const success = validateForm();
@@ -33,7 +54,7 @@ const RegisterPage = () => {
     }
   };
 
-  // d iv to hold the form with a grid setup (2 columns: left and right)
+  // div to hold the form with a grid setup (2 columns: left and right)
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* left side */}
@@ -48,7 +69,8 @@ const RegisterPage = () => {
               >
                 <MessageCircle className="size-10 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold mt-2">Create Account</h1>
+              <h1 className="text-2xl font-bold mt-2">Chat With Me</h1>
+              <h2 className="text-lg font-medium">Create your account</h2>
               <p className="text-base-content/60">
                 Start chatting with friends for free by registering!
               </p>
@@ -148,9 +170,9 @@ const RegisterPage = () => {
 
           <div className="text-center">
             <p className="text-base-content/60">
-              Already have an account? Login!{" "}
+              Already have an account?{" "}
               <Link to="/login" className="link link-primary">
-                Sign in
+                Log in
               </Link>
             </p>
           </div>
