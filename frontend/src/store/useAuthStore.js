@@ -16,7 +16,7 @@ export const useAuthStore = create((set) => ({
       // Check if user is authenticated
       // We already have a base URL configured
       const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data });
+      set({ authUser: res.data.user }); // Access the user property from the response
     } catch (error) {
       console.log("Error in checkAuth authStore:", error.message);
       set({ authUser: null });
@@ -63,6 +63,30 @@ export const useAuthStore = create((set) => ({
     } catch (error) {
       console.log("Error in logout authStore:", error.message);
       toast.error(error.response.data.message);
+    }
+  },
+
+  updateProfile: async (data) => {
+    set({ isUpdatingProfile: true });
+    try {
+      const res = await axiosInstance.put("/auth/update-profile", data);
+      set({ authUser: res.data });
+      toast.success("Profile info successfully updated!");
+    } catch (error) {
+      console.log("Error in updateProfile authStore:", error.message);
+
+      // Handle specific error cases
+      if (error.response?.status === 413) {
+        toast.error(
+          "Image file is too large. Please choose a smaller image (max 10MB)."
+        );
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to update profile. Please try again.");
+      }
+    } finally {
+      set({ isUpdatingProfile: false });
     }
   },
 }));

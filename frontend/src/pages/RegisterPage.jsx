@@ -69,10 +69,9 @@ const RegisterPage = () => {
               >
                 <MessageCircle className="size-10 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold mt-2">Chat With Me</h1>
-              <h2 className="text-lg font-medium">Create your account</h2>
+              <h1 className="text-2xl font-bold mt-2">Get Started</h1>
               <p className="text-base-content/60">
-                Start chatting with friends for free by registering!
+                Start chatting with friends today by registering!
               </p>
             </div>
           </div>
