@@ -102,6 +102,9 @@ export const updateProfile = async (req, res) => {
     // we can directly access the user object since this function uses the protectRoute middleware
     const userId = req.user._id;
 
+    // grab the user's current profile picture URL
+    const currentProfilePic = req.user.profilePic;
+
     if (!profilePic) {
       return res.status(400).json({ message: "Profile picture is required." });
     }
@@ -116,6 +119,34 @@ export const updateProfile = async (req, res) => {
       },
       { new: true }
     );
+
+    // If the upload was successful, delete the old profile picture from Cloudinary
+    if (currentProfilePic && currentProfilePic.includes("cloudinary.com")) {
+      try {
+        console.log("Current profile picture URL:", currentProfilePic);
+        const publicId = currentProfilePic.split("/").pop().split(".")[0];
+        console.log("Deleting old profile picture from Cloudinary:", publicId);
+
+        const deleteResult = await cloudinary.uploader.destroy(publicId);
+        console.log("Cloudinary deletion result:", deleteResult);
+
+        if (deleteResult.result === "ok") {
+          console.log("Old profile picture deleted successfully");
+        } else {
+          console.log(
+            "Failed to delete old profile picture:",
+            deleteResult.result
+          );
+        }
+      } catch (deleteError) {
+        console.log("Error deleting old profile picture:", deleteError.message);
+        // Don't fail the whole request if deletion fails
+      }
+    } else {
+      console.log(
+        "No previous Cloudinary image to delete or it's a default image"
+      );
+    }
 
     res
       .status(200)
