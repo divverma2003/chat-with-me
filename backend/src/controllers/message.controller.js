@@ -1,12 +1,13 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
+import cloudinary from "../lib/cloudinary.js";
 
 // Fetch all users except the current user
 export const getUsersForSideBar = async (req, res) => {
   // this function uses the "protectRoute" middleware, so we may grab the current user details from the request body
 
   try {
-    const currentUserId = req.user_id;
+    const currentUserId = req.user._id;
 
     // fetch all users except the current user (find all users with id not equal to currentUserId)
 
@@ -26,7 +27,7 @@ export const getMessages = async (req, res) => {
     // Id of user that sent the message to current user
     const { id: userToChatId } = req.params;
     // Id of the user logged in
-    const myId = req.user_id;
+    const myId = req.user._id;
     const messages = await Message.find({
       $or: [
         { senderId: myId, receiverId: userToChatId },
@@ -44,7 +45,7 @@ export const sendMessage = async (req, res) => {
   try {
     const { text, image } = req.body;
     const { id: receiverId } = req.params;
-    const senderId = req.user_id;
+    const senderId = req.user._id;
 
     let imageUrl;
     if (image) {

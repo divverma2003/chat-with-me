@@ -5,7 +5,6 @@ export const useThemeStore = create((set) => ({
   // We'll fetch the initial theme from local storage (user's browser)
   theme: localStorage.getItem("user-theme") || "light",
   setTheme: (theme) => {
-    console.log("Setting theme to:", theme); // Debug log
     localStorage.setItem("user-theme", theme);
     set({ theme });
   },

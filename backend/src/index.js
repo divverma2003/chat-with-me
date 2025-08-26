@@ -17,7 +17,7 @@ app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:5173", credentials: true })); // prevents CORS error when both ports attempt to communicate (frontend with backends)
 
 app.use("/api/auth", authRoutes);
-app.use("/api/message", messageRoutes);
+app.use("/api/messages", messageRoutes);
 app.listen(APP_PORT, () => {
   console.log(`Server is running on port ${APP_PORT}`);
   connectDB();

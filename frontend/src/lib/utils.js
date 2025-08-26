@@ -9,3 +9,13 @@ export const validateImageSize = (file, maxSizeMB = 10) => {
   }
   return true;
 };
+
+export const formatMessageTime = (date) => {
+  const formattedTime = new Date(date).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  return formattedTime;
+};
