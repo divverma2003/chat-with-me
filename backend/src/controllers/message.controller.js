@@ -8,7 +8,6 @@ export const getUsersForSideBar = async (req, res) => {
   // this function uses the "protectRoute" middleware, so we may grab the current user details from the request body
 
   try {
-    console.log(req.user);
     const currentUserId = req.user._id;
 
     // fetch all users except the current user (find all users with id not equal to currentUserId)
@@ -17,13 +16,13 @@ export const getUsersForSideBar = async (req, res) => {
     const filteredUsers = await User.find({
       _id: { $ne: currentUserId },
     }).select("-password");
+
     res.status(200).json(filteredUsers);
   } catch (error) {
     console.log("Error in getUsersForSideBar controller:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 export const getMessages = async (req, res) => {
   try {
     // Id of user that sent the message to current user
