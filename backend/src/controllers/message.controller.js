@@ -1,12 +1,14 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
 
 // Fetch all users except the current user
 export const getUsersForSideBar = async (req, res) => {
   // this function uses the "protectRoute" middleware, so we may grab the current user details from the request body
 
   try {
+    console.log(req.user);
     const currentUserId = req.user._id;
 
     // fetch all users except the current user (find all users with id not equal to currentUserId)
@@ -62,7 +64,14 @@ export const sendMessage = async (req, res) => {
     });
 
     await newMessage.save();
-    // todo: realtime functionality will be added with socket.io
+
+    // realtime functionality will be added with socket.io
+    const receiverSocketId = getReceiverSocketId(receiverId);
+
+    // if the user is online, send the message in real time
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
     res.status(201).json(newMessage);
   } catch (error) {
     console.log("Error in sendMessage controller:", error.message);

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
+import { useAuthStore } from "./useAuthStore";
 
 export const useChatStore = create((set, get) => ({
   messages: [],
@@ -48,9 +49,32 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // todo: optimize
-  setSelectedUser: (selectedUser) =>
+  setSelectedUser: (selectedUser) => {
     set({
       selectedUser,
-    }),
+    });
+  },
+
+  // view messages in real time if we have our chat open
+  subscribeToMessages: () => {
+    const { selectedUser } = get();
+
+    if (!selectedUser) return;
+
+    const socket = useAuthStore.getState().socket;
+
+    socket.on("newMessage", (newMessage) => {
+      // only add message if it's from the user we're currently chatting with (selectedUser)
+      if (newMessage.senderId !== selectedUser._id) return;
+      set({
+        messages: [...get().messages, newMessage],
+      });
+    });
+  },
+
+  // remove websocket listener for messages after logging out, or closing chat
+  unsubscribeToMessages: () => {
+    const socket = useAuthStore.getState().socket;
+    socket.off("newMessage");
+  },
 }));

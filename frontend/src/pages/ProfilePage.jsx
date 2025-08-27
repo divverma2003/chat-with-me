@@ -3,7 +3,6 @@ import { Mail, User, Camera } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { validateImageSize } from "../lib/utils";
 import toast from "react-hot-toast";
-import { set } from "mongoose";
 
 const ProfilePage = () => {
   const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();

@@ -4,10 +4,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import { connectDB } from "./lib/db.js";
+import { app, server } from "./lib/socket.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
-
-const app = express();
 
 dotenv.config();
 const APP_PORT = process.env.PORT;
@@ -18,7 +17,7 @@ app.use(cors({ origin: "http://localhost:5173", credentials: true })); // preven
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
-app.listen(APP_PORT, () => {
+server.listen(APP_PORT, () => {
   console.log(`Server is running on port ${APP_PORT}`);
   connectDB();
 });

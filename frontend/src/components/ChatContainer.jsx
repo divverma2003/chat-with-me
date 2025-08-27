@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
@@ -14,13 +14,34 @@ const ChatContainer = () => {
     sendMessage,
     isMessagesLoading,
     selectedUser,
+    subscribeToMessages,
+    unsubscribeToMessages,
   } = useChatStore();
   const { authUser } = useAuthStore();
+
+  // auto scroll to receive new message
+  const messageEndRef = useRef(null);
+
+  // everytime messages change, scroll to bottom
+  useEffect(() => {
+    if (messageEndRef.current && messages) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   // everytime the selected user changes, fetch messages
   useEffect(() => {
     getMessages(selectedUser._id);
-  }, [selectedUser._id, getMessages]);
+    subscribeToMessages(); // start listening for new messages (e.g. via sockets)
+
+    // clean up
+    return () => unsubscribeToMessages(); // stop listening when component unmounts or dependency changes
+  }, [
+    selectedUser._id,
+    getMessages,
+    subscribeToMessages,
+    unsubscribeToMessages,
+  ]);
 
   if (isMessagesLoading) {
     return (
@@ -41,6 +62,7 @@ const ChatContainer = () => {
             className={`chat ${
               message.senderId === authUser._id ? "chat-end" : "chat-start"
             }`}
+            ref={messageEndRef}
           >
             <div className="chat-image avatar">
               <div className="size-10 rounded-full border">

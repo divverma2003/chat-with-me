@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
@@ -10,12 +10,17 @@ const Sidebar = () => {
     useChatStore();
 
   const { authUser, onlineUsers } = useAuthStore();
+  const { showOnlineOnly, setShowOnlineOnly } = useState(false);
 
   useEffect(() => {
     getUsers();
   }, [getUsers]);
 
-  const filteredUsers = users.filter((user) => user._id !== authUser._id);
+  const usersExceptCurrent = users.filter((user) => user._id !== authUser._id);
+
+  const filteredUsers = showOnlineOnly
+    ? users.filter((user) => onlineUsers.includes(user._id))
+    : usersExceptCurrent;
 
   if (isUsersLoading) return <SidebarSkeleton />;
   return (
