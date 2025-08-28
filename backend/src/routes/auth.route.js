@@ -5,7 +5,6 @@ import {
   logout,
   updateProfile,
   checkAuth,
-  testEmail,
   verifyEmail,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
@@ -25,8 +24,5 @@ router.get("/check", protectRoute, checkAuth);
 
 // Email verification route - no auth required
 router.get("/verify-email/:token", verifyEmail);
-
-// Test email route (remove after testing)
-router.post("/test-email", testEmail);
 
 export default router;

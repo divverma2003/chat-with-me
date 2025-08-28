@@ -48,7 +48,7 @@ export const register = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Verify Your Email - Chat With Me",
+      subject: "Verify Your Email - Chat With Me (By Divya)",
       html: `
         <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
           <h1 style="color: #4CAF50; text-align: center;">Welcome to Chat With Me!</h1>
@@ -85,7 +85,7 @@ export const register = async (req, res) => {
         isVerified: newUser.isVerified,
       });
     } catch (emailError) {
-      console.log("❌ Failed to send verification email:", emailError.message);
+      console.log("Failed to send verification email:", emailError.message);
 
       // Delete the user if email fails
       await User.findByIdAndDelete(newUser._id);
@@ -265,7 +265,7 @@ export const verifyEmail = async (req, res) => {
     user.verificationTokenExpires = null;
     await user.save();
 
-    console.log("✅ Email verified successfully for user:", user.email);
+    console.log("Email verified successfully for user:", user.email);
 
     res.status(200).json({
       message: "Email verified successfully! You can now log in.",
@@ -277,44 +277,7 @@ export const verifyEmail = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("❌ Error in verifyEmail controller:", error.message);
+    console.log("Error in verifyEmail controller:", error.message);
     res.status(500).json({ message: "Internal Server Error." });
-  }
-};
-
-// Test email function - remove after testing
-export const testEmail = async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
-    }
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Test Email - Chat With Me",
-      html: `
-        <h1>Test Email</h1>
-        <p>If you received this email, your nodemailer configuration is working correctly!</p>
-        <p>Sent at: ${new Date().toLocaleString()}</p>
-      `,
-    };
-
-    console.log("Attempting to send test email to:", email);
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Test email sent successfully!");
-
-    res.status(200).json({
-      message: "Test email sent successfully!",
-      to: email,
-    });
-  } catch (error) {
-    console.log("❌ Test email failed:", error.message);
-    res.status(500).json({
-      message: "Failed to send test email",
-      error: error.message,
-    });
   }
 };
