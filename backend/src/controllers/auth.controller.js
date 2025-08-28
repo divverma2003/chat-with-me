@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 import User from "../models/user.model.js";
 import { generateToken } from "../lib/utils.js";
+import transporter from "../lib/nodemailer.js";
 
 export const register = async (req, res) => {
   // Get user details from request body
@@ -163,5 +164,42 @@ export const checkAuth = (req, res) => {
   } catch (error) {
     console.log("Error occurred in checkAuth controller:", error.message);
     res.status(500).json({ message: "Internal Server Error." });
+  }
+};
+
+// Test email function - remove after testing
+export const testEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Test Email - Chat With Me",
+      html: `
+        <h1>Test Email</h1>
+        <p>If you received this email, your nodemailer configuration is working correctly!</p>
+        <p>Sent at: ${new Date().toLocaleString()}</p>
+      `,
+    };
+
+    console.log("Attempting to send test email to:", email);
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Test email sent successfully!");
+
+    res.status(200).json({
+      message: "Test email sent successfully!",
+      to: email,
+    });
+  } catch (error) {
+    console.log("❌ Test email failed:", error.message);
+    res.status(500).json({
+      message: "Failed to send test email",
+      error: error.message,
+    });
   }
 };

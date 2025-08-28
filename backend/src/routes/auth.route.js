@@ -5,8 +5,10 @@ import {
   logout,
   updateProfile,
   checkAuth,
+  testEmail,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
+import transporter from "../lib/nodemailer.js";
 
 const router = express.Router();
 
@@ -20,4 +22,8 @@ router.post("/logout", logout);
 router.put("/update-profile", protectRoute, updateProfile);
 
 router.get("/check", protectRoute, checkAuth);
+
+// Test email route (remove after testing)
+router.post("/test-email", testEmail);
+
 export default router;
