@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 import User from "../models/user.model.js";
-import { generateToken } from "../lib/utils.js";
+import { generateToken, generateVerificationToken } from "../lib/utils.js";
 import transporter from "../lib/nodemailer.js";
 
 export const register = async (req, res) => {
@@ -27,50 +27,123 @@ export const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Generate verification token
+    const verificationToken = generateVerificationToken();
+
     const newUser = new User({
       fullName,
       email,
       password: hashedPassword,
+      verificationToken,
+      verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+      isVerified: false, // User starts unverified
     });
 
-    if (newUser) {
-      // generate JWT token
-      generateToken(newUser._id, res);
-      await newUser.save();
+    await newUser.save();
+    console.log("User saved successfully:", newUser._id);
+
+    // Send verification email
+    const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verify Your Email - Chat With Me",
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+          <h1 style="color: #4CAF50; text-align: center;">Welcome to Chat With Me!</h1>
+          <p>Hi <strong>${fullName}</strong>,</p>
+          <p>Thank you for registering! Please click the button below to verify your email address:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationUrl}" 
+               style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Verify My Email
+            </a>
+          </div>
+          <p>Or copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; color: #666;">${verificationUrl}</p>
+          <p><strong>Important:</strong> This link will expire in 24 hours for security reasons.</p>
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+          <p style="color: #888; font-size: 12px;">
+            If you didn't create an account, please ignore this email.
+          </p>
+        </div>
+      `,
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("✅ Verification email sent successfully to:", email);
 
       res.status(201).json({
-        message: "User created successfully.",
+        message:
+          "Registration successful! Please check your email to verify your account before logging in.",
         _id: newUser._id,
         fullName: newUser.fullName,
         email: newUser.email,
         profilePic: newUser.profilePic,
+        isVerified: newUser.isVerified,
       });
-    } else {
-      res
-        .status(400)
-        .json({ message: "Failed to create user. Invalid user data." });
+    } catch (emailError) {
+      console.log("❌ Failed to send verification email:", emailError.message);
+
+      // Delete the user if email fails
+      await User.findByIdAndDelete(newUser._id);
+
+      res.status(500).json({
+        message:
+          "Registration failed. Could not send verification email. Please try again.",
+        error: emailError.message,
+      });
     }
   } catch (error) {
     console.log("Error occurred in register controller:", error.message);
     res.status(500).json({ message: "Internal Server Error." });
   }
-  res.send("User registration");
 };
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
+
+  console.log("Login request received:", { email, password: "***" });
+
   try {
+    if (!email || !password) {
+      console.log("Missing login fields:", {
+        email: !!email,
+        password: !!password,
+      });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
     // check if user exists in collection
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(400).json({ message: "Invalid credentials." });
+    if (!user) {
+      console.log("User not found:", email);
+      return res.status(400).json({ message: "Invalid credentials." });
+    }
+
+    console.log("User found, isVerified:", user.isVerified);
+
+    // Check if user is verified
+    if (!user.isVerified) {
+      console.log("User not verified:", email);
+      return res.status(400).json({
+        message:
+          "Please verify your email before logging in. Check your inbox for the verification link.",
+      });
+    }
 
     // Now, decrypt the stored password with the password the user input to verify they match.
-
     const passwordMatch = await bcrypt.compare(password, user.password);
 
-    if (!passwordMatch)
+    if (!passwordMatch) {
+      console.log("Password mismatch for user:", email);
       return res.status(400).json({ message: "Invalid credentials." });
+    }
 
     generateToken(user._id, res);
     res.status(200).json({
@@ -163,6 +236,48 @@ export const checkAuth = (req, res) => {
     res.status(200).json({ user: req.user });
   } catch (error) {
     console.log("Error occurred in checkAuth controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error." });
+  }
+};
+
+// Email verification endpoint
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+    console.log("Email verification requested with token:", token);
+
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      console.log("Invalid or expired verification token:", token);
+      return res.status(400).json({
+        message:
+          "Invalid or expired verification token. Please request a new verification email.",
+      });
+    }
+
+    // Verify the user
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpires = null;
+    await user.save();
+
+    console.log("✅ Email verified successfully for user:", user.email);
+
+    res.status(200).json({
+      message: "Email verified successfully! You can now log in.",
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        isVerified: user.isVerified,
+      },
+    });
+  } catch (error) {
+    console.log("❌ Error in verifyEmail controller:", error.message);
     res.status(500).json({ message: "Internal Server Error." });
   }
 };

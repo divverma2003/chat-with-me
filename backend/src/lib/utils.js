@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 export const generateToken = (userId, res) => {
   // map user to token
@@ -12,4 +13,8 @@ export const generateToken = (userId, res) => {
     sameSite: "strict", // CSRF attacks cross-site request forgery attacks
     secure: process.env.NODE_ENV !== "development" ? true : false, // cookie only sent over HTTPS in production
   });
+};
+
+export const generateVerificationToken = () => {
+  return crypto.randomBytes(32).toString("hex");
 };
