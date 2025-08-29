@@ -182,7 +182,7 @@ export const login = async (req, res) => {
 
     // Note: We'll allow login regardless of verification status
     // Frontend will handle redirecting unverified users to verification page
-    
+
     // Now, decrypt the stored password with the password the user input to verify they match.
     const passwordMatch = await bcrypt.compare(password, user.password);
 
@@ -269,9 +269,15 @@ export const updateProfile = async (req, res) => {
       );
     }
 
-    res
-      .status(200)
-      .json({ message: "Profile picture updated successfully.", updatedUser });
+    res.status(200).json({
+      message: "Profile picture updated successfully.",
+      _id: updatedUser._id,
+      fullName: updatedUser.fullName,
+      email: updatedUser.email,
+      profilePic: updatedUser.profilePic,
+      isVerified: updatedUser.isVerified,
+      createdAt: updatedUser.createdAt,
+    });
   } catch (error) {
     console.log("Error occurred in updateProfile controller:", error.message);
     res.status(500).json({ message: "Internal Server Error." });

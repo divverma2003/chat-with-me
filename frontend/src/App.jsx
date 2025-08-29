@@ -80,7 +80,16 @@ function App() {
             )
           }
         />
-        <Route path="/before-verify" element={<BeforeVerifyPage />} />
+        <Route
+          path="/before-verify"
+          element={
+            authUser && authUser.isVerified ? (
+              <Navigate to="/" replace />
+            ) : (
+              <BeforeVerifyPage />
+            )
+          }
+        />
         <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route
