@@ -7,6 +7,7 @@ import {
   checkAuth,
   verifyEmail,
   resendVerification,
+  getUserFromToken,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -29,4 +30,6 @@ router.get("/verify-email/:token", verifyEmail);
 // Resend verification route - no auth required
 router.post("/resend-verification", resendVerification);
 
+// Get user details from token
+router.get("/find-user/:token", getUserFromToken);
 export default router;

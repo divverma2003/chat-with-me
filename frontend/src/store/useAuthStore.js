@@ -12,6 +12,7 @@ export const useAuthStore = create((set, get) => ({
   isRegistering: false,
   isLoggingIn: false,
   isUpdatingProfile: false,
+  isVerifyingEmail: false,
   onlineUsers: [],
   socket: null,
 
@@ -98,6 +99,65 @@ export const useAuthStore = create((set, get) => ({
       }
     } finally {
       set({ isUpdatingProfile: false });
+    }
+  },
+  verifyEmail: async (token) => {
+    if (!token) {
+      toast.error("Verification token is required");
+      return;
+    }
+
+    set({ isVerifyingEmail: true });
+    try {
+      const res = await axiosInstance.get(`/auth/verify-email/${token}`);
+      toast.success("Email verified successfully! You can now log in.");
+      return res.data; // Return success data
+    } catch (error) {
+      console.log("Error in verifyEmail authStore:", error.message);
+      const errorMessage =
+        error.response?.data?.message || "Email verification failed";
+      toast.error(errorMessage);
+      throw error; // Re-throw so component can handle it
+    } finally {
+      set({ isVerifyingEmail: false });
+    }
+  },
+
+  resendVerification: async (email) => {
+    if (!email) {
+      toast.error("Email is required.");
+      return;
+    }
+
+    set({ isVerifyingEmail: true });
+    try {
+      const res = await axiosInstance.post("/auth/resend-verification", {
+        email,
+      });
+      toast.success("Verification email sent! Please check your inbox.");
+      return res.data;
+    } catch (error) {
+      console.log("Error in resendVerification authStore:", error.message);
+      const errorMessage =
+        error.response?.data?.message || "Failed to resend verification email";
+      toast.error(errorMessage);
+      throw error;
+    } finally {
+      set({ isVerifyingEmail: false });
+    }
+  },
+  findUserByToken: async (token) => {
+    try {
+      const res = await axiosInstance.get(`/auth/find-user/${token}`);
+      toast.success("User found for the provided token.");
+
+      return res.data.user;
+    } catch (error) {
+      console.log("Error in findUserByToken authStore:", error.message);
+      const errorMessage =
+        error.response?.data?.message || "Failed to find user by token";
+      toast.error(errorMessage);
+      throw error;
     }
   },
   connectSocket: () => {

@@ -13,6 +13,7 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 // External components
 import { Loader } from "lucide-react";
@@ -52,6 +53,7 @@ function App() {
           path="/login"
           element={!authUser ? <LoginPage /> : <Navigate to="/" />}
         />
+        <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route
           path="/profile"

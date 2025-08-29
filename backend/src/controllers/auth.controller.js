@@ -307,7 +307,7 @@ export const verifyEmail = async (req, res) => {
       console.log("Invalid or expired verification token:", token);
       return res.status(400).json({
         message:
-          "Invalid or expired verification token. Please request a new verification email.",
+          "Invalid or expired verification token. Please try verifying your email again.",
       });
     }
 
@@ -330,6 +330,40 @@ export const verifyEmail = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in verifyEmail controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error." });
+  }
+};
+
+// Find user from verification token (regardless of expiry)
+export const getUserFromToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    console.log("Searching for user with token:", token);
+    const user = await User.findOne({
+      verificationToken: token,
+    });
+
+    if (!user) {
+      console.log("Invalid verification token:", token);
+      return res.status(400).json({
+        message:
+          "Invalid verification token. Please try verifying your email again.",
+      });
+    }
+    res.status(200).json({
+      message: "User found!",
+      user: {
+        _id: user._id,
+        email: user.email,
+        verificationToken: user.verificationToken,
+      },
+    });
+  } catch (error) {
+    console.log(
+      "Error occurred in getUserFromToken auth controller:",
+      error.message
+    );
     res.status(500).json({ message: "Internal Server Error." });
   }
 };
