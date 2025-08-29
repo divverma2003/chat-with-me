@@ -6,15 +6,23 @@ import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import { Users } from "lucide-react";
 
 const Sidebar = () => {
-  const { users, getUsers, selectedUser, setSelectedUser, isUsersLoading } =
-    useChatStore();
+  const {
+    users,
+    getUsers,
+    selectedUser,
+    setSelectedUser,
+    isUsersLoading,
+    unreadCounts,
+    getUnreadCounts,
+  } = useChatStore();
 
   const { authUser, onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
     getUsers();
-  }, []); // Empty dependency array - only run once on mount
+    getUnreadCounts(); // Fetch unread counts when component loads
+  }, []); // dependency array - only run once on mount
 
   const filteredUsers = showOnlineOnly
     ? users.filter((user) => onlineUsers.includes(user._id))
@@ -67,6 +75,15 @@ const Sidebar = () => {
                 alt={user.name}
                 className="size-12 object-cover rounded-full"
               />
+
+              {/* Unread message count badge */}
+              {unreadCounts[user._id] > 0 && (
+                <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full size-5 flex items-center justify-center font-medium">
+                  {unreadCounts[user._id] > 99 ? "99+" : unreadCounts[user._id]}
+                </div>
+              )}
+
+              {/* Online status indicator */}
               {onlineUsers.includes(user._id) && (
                 <span
                   className="absolute bottom-0 right-0 size-3 bg-green-500 

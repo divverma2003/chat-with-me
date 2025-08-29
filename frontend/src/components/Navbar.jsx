@@ -1,9 +1,19 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { LogOut, MessageCircle, Settings, User } from "lucide-react";
+import { useChatStore } from "../store/useChatStore";
+
+import {
+  LogOut,
+  MessageCircle,
+  MessageSquare,
+  Settings,
+  User,
+} from "lucide-react";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
+  const { getTotalUnreadCount } = useChatStore();
+  const totalUnread = getTotalUnreadCount();
 
   return (
     <header
@@ -27,6 +37,19 @@ const Navbar = () => {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            {/* Message Count - integrated with other nav items */}
+            <div className="relative">
+              <button className="btn btn-sm gap-2 transition-colors">
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">Messages</span>
+                {totalUnread > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full size-5 flex items-center justify-center font-medium">
+                    {totalUnread > 99 ? "99+" : totalUnread}
+                  </div>
+                )}
+              </button>
+            </div>
+
             <Link
               to={"/settings"}
               className={`

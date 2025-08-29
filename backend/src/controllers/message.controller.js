@@ -85,12 +85,26 @@ export const getMessages = async (req, res) => {
     const { id: userToChatId } = req.params;
     // Id of the user logged in
     const myId = req.user._id;
+
     const messages = await Message.find({
       $or: [
         { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiverId: myId },
       ],
     });
+
+    // Mark messages as read where current user is the receiver
+    await Message.updateMany(
+      {
+        senderId: userToChatId,
+        receiverId: myId,
+        isRead: false,
+      },
+      {
+        isRead: true,
+      }
+    );
+
     res.status(200).json(messages);
   } catch (error) {
     console.log("Error in getMessages controller:", error.message);
@@ -130,6 +144,52 @@ export const sendMessage = async (req, res) => {
     res.status(201).json(newMessage);
   } catch (error) {
     console.log("Error in sendMessage controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get unread message counts per user
+export const getUnreadCounts = async (req, res) => {
+  try {
+    const currentUserId = req.user._id;
+
+    const unreadCounts = await Message.aggregate([
+      // Match messages where current user is receiver and message is unread
+      {
+        $match: {
+          receiverId: currentUserId,
+          isRead: false,
+        },
+      },
+      // Group by sender and count unread messages
+      {
+        $group: {
+          _id: "$senderId",
+          unreadCount: { $sum: 1 },
+        },
+      },
+      // Lookup sender details
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "sender",
+        },
+      },
+      // Format the response
+      {
+        $project: {
+          senderId: "$_id",
+          unreadCount: 1,
+          sender: { $arrayElemAt: ["$sender", 0] },
+        },
+      },
+    ]);
+
+    res.status(200).json(unreadCounts);
+  } catch (error) {
+    console.log("Error in getUnreadCounts controller:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

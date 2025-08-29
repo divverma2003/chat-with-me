@@ -9,6 +9,7 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  unreadCounts: {},
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -26,6 +27,9 @@ export const useChatStore = create((set, get) => ({
     try {
       const response = await axiosInstance.get(`/messages/${userId}`);
       set({ messages: response.data });
+
+      // refresh unread counts after reading messages
+      get().getUnreadCounts();
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
@@ -76,5 +80,25 @@ export const useChatStore = create((set, get) => ({
   unsubscribeToMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+  },
+
+  getUnreadCounts: async () => {
+    try {
+      const res = await axiosInstance.get("/messages/unread-counts");
+      const counts = {};
+      res.data.forEach((item) => {
+        counts[item.senderId] = item.unreadCount;
+      });
+      set({ unreadCounts: counts });
+    } catch (error) {
+      console.log("Error fetching unread counts:", error);
+    }
+  },
+
+  getTotalUnreadCount: () => {
+    return Object.values(get().unreadCounts).reduce(
+      (sum, count) => sum + count,
+      0
+    );
   },
 }));
