@@ -47,7 +47,7 @@ A full-stack real-time chat application built with the MERN stack (MongoDB, Expr
   - Notification badges in navbar
   - Online user filtering
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -87,7 +87,7 @@ Before running this application, make sure you have:
 - **Cloudinary account** (for image uploads)
 - **Gmail account** (for email verification)
 
-## ⚙️ Installation & Setup
+## Installation & Setup
 
 ### 1. Clone the repository
 
@@ -148,7 +148,7 @@ The application will be available at:
 - **Frontend**: http://localhost:5173
 - **Backend**: http://localhost:5001
 
-## 🔧 Environment Variables
+## Environment Variables
 
 ### Backend (.env)
 
@@ -165,7 +165,7 @@ The application will be available at:
 | `EMAIL_PASS`            | Gmail app password                   |
 | `EMAIL_FROM`            | From email address                   |
 
-## 📱 Key Features Explained
+## Key Features Explained
 
 ### Email Verification System
 
