@@ -180,15 +180,9 @@ export const login = async (req, res) => {
 
     console.log("User found, isVerified:", user.isVerified);
 
-    // Check if user is verified
-    if (!user.isVerified) {
-      console.log("User not verified:", email);
-      return res.status(400).json({
-        message:
-          "Please verify your email before logging in. Check your inbox for the verification link.",
-      });
-    }
-
+    // Note: We'll allow login regardless of verification status
+    // Frontend will handle redirecting unverified users to verification page
+    
     // Now, decrypt the stored password with the password the user input to verify they match.
     const passwordMatch = await bcrypt.compare(password, user.password);
 
@@ -204,6 +198,7 @@ export const login = async (req, res) => {
       fullName: user.fullName,
       email: user.email,
       profilePic: user.profilePic,
+      isVerified: user.isVerified, // ✅ Include verification status
     });
   } catch (error) {
     console.log("Error occurred in login controller:", error.message);

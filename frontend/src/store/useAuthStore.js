@@ -21,7 +21,9 @@ export const useAuthStore = create((set, get) => ({
       // Check if user is authenticated
       // We already have a base URL configured
       const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data.user }); // Access the user property from the response
+      // Extract user data properly (response might include message field)
+      const userData = res.data.user || res.data;
+      set({ authUser: userData });
       get().connectSocket();
     } catch (error) {
       console.log("Error in checkAuth authStore:", error.message);
@@ -36,7 +38,9 @@ export const useAuthStore = create((set, get) => ({
     try {
       // send login request to the backend
       const res = await axiosInstance.post("/auth/login", data);
-      set({ authUser: res.data });
+      // Extract user data (response might include message field)
+      const userData = res.data.user || res.data;
+      set({ authUser: userData });
       toast.success("Logged in successfully!");
 
       get().connectSocket();
@@ -54,9 +58,22 @@ export const useAuthStore = create((set, get) => ({
     try {
       // send data to backend endpoint
       const res = await axiosInstance.post("/auth/register", data);
-      set({ authUser: res.data });
-      toast.success("Account created successfully!");
-      get().connectSocket();
+
+      // Extract user data (response might include message field)
+      const userData = res.data.user || res.data;
+
+      // Only set authUser if email is verified, otherwise don't auto-login
+      if (userData.isVerified) {
+        set({ authUser: userData });
+        get().connectSocket();
+        toast.success("Account created and verified! Welcome!");
+      } else {
+        // Don't set authUser for unverified accounts
+        set({ authUser: null });
+        toast.success(
+          "Account created! Please check your email to verify your account."
+        );
+      }
     } catch (error) {
       console.log("Error in register authStore:", error.message);
       toast.error(error.response.data.message);
