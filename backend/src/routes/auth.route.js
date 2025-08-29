@@ -6,6 +6,7 @@ import {
   updateProfile,
   checkAuth,
   verifyEmail,
+  resendVerification,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -24,5 +25,8 @@ router.get("/check", protectRoute, checkAuth);
 
 // Email verification route - no auth required
 router.get("/verify-email/:token", verifyEmail);
+
+// Resend verification route - no auth required
+router.post("/resend-verification", resendVerification);
 
 export default router;

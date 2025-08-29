@@ -8,6 +8,76 @@ import {
 } from "../lib/utils.js";
 import transporter from "../lib/nodemailer.js";
 
+// Resend verification email
+export const resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    console.log("Resend verification requested for:", email);
+
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return res.status(200).json({
+        message:
+          "If an account with that email exists, a verification email has been sent.",
+      });
+    }
+
+    // Check if already verified
+    if (user.isVerified) {
+      return res.status(400).json({
+        message: "This email is already verified. You can log in now.",
+      });
+    }
+
+    // Rate limiting: Check if last verification was sent recently
+    const now = Date.now();
+    const lastSent = user.verificationTokenExpires - 24 * 60 * 60 * 1000; // Calculate when it was sent
+    const timeSinceLastSent = now - lastSent;
+    const fiveMinutes = 5 * 60 * 1000;
+
+    if (timeSinceLastSent < fiveMinutes) {
+      return res.status(429).json({
+        message:
+          "Please wait 5 minutes before requesting another verification email.",
+      });
+    }
+
+    // Generate new verification token
+    const verificationToken = generateVerificationToken();
+
+    // Update user with new token
+    user.verificationToken = verificationToken;
+    user.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    await user.save();
+
+    // Send verification email
+    const mailOptions = prepareVerificationEmail(
+      verificationToken,
+      email,
+      user.fullName
+    );
+
+    await transporter.sendMail(mailOptions);
+    console.log("Verification email resent successfully to:", email);
+
+    res.status(200).json({
+      message:
+        "Verification email sent! Please check your inbox and spam folder.",
+    });
+  } catch (error) {
+    console.log("Error in resendVerification controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error." });
+  }
+};
+
 export const register = async (req, res) => {
   // Get user details from request body
   const { fullName, email, password } = req.body;
