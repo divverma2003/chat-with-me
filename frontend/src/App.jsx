@@ -15,6 +15,7 @@ import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import BeforeVerifyPage from "./pages/BeforeVerifyPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 // External components
 import { Loader } from "lucide-react";
@@ -102,6 +103,7 @@ function App() {
             )
           }
         />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Toaster />
     </div>
