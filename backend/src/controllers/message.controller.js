@@ -10,12 +10,68 @@ export const getUsersForSideBar = async (req, res) => {
   try {
     const currentUserId = req.user._id;
 
-    // fetch all users except the current user (find all users with id not equal to currentUserId)
+    // Aggregate to get users sorted by most recent message
+    const filteredUsers = await User.aggregate([
+      // Exclude current user
+      { $match: { _id: { $ne: currentUserId } } },
 
-    // fetch all details except the password to the client
-    const filteredUsers = await User.find({
-      _id: { $ne: currentUserId },
-    }).select("-password");
+      // Lookup messages where either user sent to current user or current user sent to them
+      {
+        $lookup: {
+          from: "messages",
+          let: { userId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $or: [
+                    {
+                      $and: [
+                        { $eq: ["$senderId", "$$userId"] },
+                        { $eq: ["$receiverId", currentUserId] },
+                      ],
+                    },
+                    {
+                      $and: [
+                        { $eq: ["$senderId", currentUserId] },
+                        { $eq: ["$receiverId", "$$userId"] },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            { $sort: { createdAt: -1 } },
+            { $limit: 1 },
+          ],
+          as: "lastMessage",
+        },
+      },
+
+      // Add lastMessageTime field for sorting
+      {
+        $addFields: {
+          lastMessageTime: {
+            $ifNull: [
+              { $arrayElemAt: ["$lastMessage.createdAt", 0] },
+              new Date(0),
+            ],
+          },
+        },
+      },
+
+      // Sort by most recent message (users with recent messages first)
+      { $sort: { lastMessageTime: -1 } },
+
+      // Remove sensitive fields and temporary fields
+      {
+        $project: {
+          password: 0,
+          lastMessage: 0,
+          lastMessageTime: 0,
+        },
+      },
+    ]);
 
     res.status(200).json(filteredUsers);
   } catch (error) {
