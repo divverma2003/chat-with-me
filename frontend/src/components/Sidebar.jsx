@@ -16,13 +16,36 @@ const Sidebar = () => {
     getUnreadCounts,
   } = useChatStore();
 
-  const { authUser, onlineUsers } = useAuthStore();
+  const { authUser, onlineUsers, socket } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
     getUsers();
     getUnreadCounts(); // Fetch unread counts when component loads
   }, []); // dependency array - only run once on mount
+
+  // Socket listener for new messages to reorder users and update unread counts
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (newMessage) => {
+      // Only handle messages not from the current user
+      if (newMessage.senderId === authUser._id) return;
+
+      // Refresh the users list to get the new ordering (most recent message first)
+      getUsers();
+
+      // Update unread counts
+      getUnreadCounts();
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    // Cleanup listener on unmount
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [socket, authUser._id, getUsers, getUnreadCounts]);
 
   const filteredUsers = showOnlineOnly
     ? users.filter((user) => onlineUsers.includes(user._id))
