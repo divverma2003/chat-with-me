@@ -86,8 +86,8 @@ const VerifyEmailPage = () => {
         {/* Header with Logo */}
         <div className="text-center mb-8">
           <div className="flex flex-col items-center gap-2 group">
-            <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <MessageCircle className="w-8 h-8 text-primary" />
+            <div className="size-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <MessageCircle className="size-10 text-primary" />
             </div>
             <h1 className="text-2xl font-bold mt-2">Chat With Me</h1>
             <p className="text-base-content/60">Email Verification</p>
