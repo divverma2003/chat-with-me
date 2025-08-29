@@ -39,7 +39,7 @@ const Navbar = () => {
           <div className="flex items-center gap-2">
             {/* Message Count - integrated with other nav items */}
             <div className="relative">
-              <button className="btn btn-sm gap-2 transition-colors">
+              <div className="btn btn-sm gap-2 transition-colors cursor-default hover:bg-base-200">
                 <MessageSquare className="w-4 h-4" />
                 <span className="hidden sm:inline">Messages</span>
                 {totalUnread > 0 && (
@@ -47,7 +47,7 @@ const Navbar = () => {
                     {totalUnread > 99 ? "99+" : totalUnread}
                   </div>
                 )}
-              </button>
+              </div>
             </div>
 
             <Link
