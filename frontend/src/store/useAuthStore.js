@@ -150,14 +150,11 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.get(`/auth/find-user/${token}`);
       toast.success("User found for the provided token.");
-
       return res.data.user;
     } catch (error) {
       console.log("Error in findUserByToken authStore:", error.message);
-      const errorMessage =
-        error.response?.data?.message || "Failed to find user by token";
-      toast.error(errorMessage);
-      throw error;
+      // Return empty object instead of throwing error when user not found
+      return {};
     }
   },
   connectSocket: () => {

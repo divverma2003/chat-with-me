@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { CheckCircle2, XCircle, Loader2, RefreshCw } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  RefreshCw,
+  TriangleAlert,
+} from "lucide-react";
 import VerifyButton from "./VerifyButton";
 import { Link } from "react-router-dom";
 const VerifyPanel = (props) => {
@@ -46,6 +52,22 @@ const VerifyPanel = (props) => {
             <Link to="/login" className="btn btn-primary btn-wide">
               Continue to Login
             </Link>
+          </div>
+        </div>
+      )}
+      {props.verificationStatus === "warning" && (
+        <div className="text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="size-16 rounded-full bg-warning/10 flex items-center justify-center">
+              <TriangleAlert className="w-8 h-8 text-warning" />
+            </div>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-base-content mb-2">
+              Incorrect or Expired Link
+            </h2>
+            <p className="text-warning mb-4">{props.warningMessage}</p>
+            <VerifyButton email={props.user?.email} />
           </div>
         </div>
       )}

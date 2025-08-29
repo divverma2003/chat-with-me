@@ -10,19 +10,28 @@ import {
   ArrowLeft,
   RefreshCw,
 } from "lucide-react";
+
 import VerifyPanel from "../components/VerifyPanel";
+
 const VerifyEmailPage = () => {
-  const { verifyEmail, resendVerification, isVerifyingEmail } = useAuthStore();
+  const { verifyEmail, resendVerification, isVerifyingEmail, findUserByToken } =
+    useAuthStore();
   const { token } = useParams();
   const navigate = useNavigate();
 
-  const [verificationStatus, setVerificationStatus] = useState("verifying"); // verifying, success, error
+  const [verificationStatus, setVerificationStatus] = useState("initial"); // initial, verifying, success, error
   const [errorMessage, setErrorMessage] = useState("");
+  const [warningMessage, setWarningMessage] = useState("");
   const [user, setUser] = useState(null);
   const hasVerifiedRef = useRef(false);
 
+  // Ensure that the verification process is only attempted once
   useEffect(() => {
-    console.log("VerifyEmailPage useEffect triggered:", { token, hasVerified: hasVerifiedRef.current });
+    console.log("VerifyEmailPage useEffect triggered:", {
+      token,
+      hasVerified: hasVerifiedRef.current,
+    });
+
     if (token && !hasVerifiedRef.current) {
       hasVerifiedRef.current = true; // Mark as attempted immediately
       console.log("Starting verification process...");
@@ -33,7 +42,20 @@ const VerifyEmailPage = () => {
   const handleVerification = async () => {
     console.log("handleVerification called");
     setVerificationStatus("verifying");
+
     try {
+      const userData = await findUserByToken(token);
+      setUser(userData);
+
+      console.log("User data retrieved:", userData);
+      // User not found, handle accordingly
+      if (!userData || !userData.email) {
+        setVerificationStatus("warning");
+        setWarningMessage(
+          "Unable to verify. You may have already verified your email. Try logging in or requesting a new verification request."
+        );
+        return;
+      }
       // Direct verification without pre-checking user existence
       await verifyEmail(token);
       setVerificationStatus("success");
@@ -52,8 +74,8 @@ const VerifyEmailPage = () => {
       <VerifyPanel
         verificationStatus={verificationStatus}
         errorMessage={errorMessage}
-        setErrorMessage={setErrorMessage}
-        user={user}
+        warningMessage={warningMessage}
+        user={user ? user : null}
       />
     );
   };
