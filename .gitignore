@@ -114,6 +114,9 @@ dist
 # FuseBox cache
 .fusebox/
 
+# Deployment readiness file
+ReadyForDeployment.md
+
 # DynamoDB Local files
 .dynamodb/
 

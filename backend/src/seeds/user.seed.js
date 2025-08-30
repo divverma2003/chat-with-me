@@ -98,16 +98,29 @@ const seedUsers = [
     password: "test1234",
     profilePic: "https://randomuser.me/api/portraits/men/16.jpg",
   },
-];
+].map((user) => ({
+  ...user,
+  isVerified: true,
+  verificationToken: null,
+  verificationTokenExpires: null,
+}));
 
 const seedUsersInDB = async () => {
   try {
     await connectDB();
+
+    // Remove all existing users first
+    await User.deleteMany({});
+    console.log("Existing users removed.");
+
+    // Insert fresh users
     await User.insertMany(seedUsers);
-    console.log("User seeding completed.");
+    console.log("Verified users seeded successfully.");
   } catch (error) {
     console.error("Error seeding users:", error.message);
+  } finally {
+    process.exit();
   }
 };
 
-seedUsersInDB().then(() => process.exit());
+seedUsersInDB();
