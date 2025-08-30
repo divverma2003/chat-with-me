@@ -22,10 +22,12 @@ app.use("/api/messages", messageRoutes);
 
 // serve API and REACT under the same name
 if (process.env.NODE_ENV === "production") {
+  // Serve Vite build output
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  app.get("/*", (req, res) => {
-    res.sendFile(path.join(__dirname, "client/build", "index.html"));
+  // Catch-all to send index.html
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
   });
 }
 server.listen(APP_PORT, () => {
